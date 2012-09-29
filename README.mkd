@@ -1,0 +1,18 @@
+# Pomodorish -- bash script for pomodor technique
+
+Pomodoro Technique:
+
+ * work for 25 minutes
+ * take 5 minute break
+ * repeat for 4 times total
+ * then take a 15 minute break.
+ * start-over
+
+---
+
+TODO: make it more portable
+
+NOTE: the images and sounds came from ... other places... i'll add license stuff as soon as possible
+
+The script itself is [licensed MIT](http://taylor.mit-license.org/)
+
