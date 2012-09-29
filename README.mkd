@@ -1,12 +1,31 @@
-# Pomodorish -- bash script for pomodor technique
+# Pomodorish
 
-Pomodoro Technique:
+bash script for pomodor technique
 
- * work for 25 minutes
- * take 5 minute break
- * repeat for 4 times total
- * then take a 15 minute break.
- * start-over
+##
+  Pomodoro Technique:
+
+   * work for 25 minutes
+   * take 5 minute break
+   * repeat for 4 times total
+   * then take a 15 minute break.
+   * start-over
+
+
+## Install
+
+ * Cloning this repo
+ * Put stuff somewhere...
+
+## Using it
+
+ * put the bin dir in your path and run pomodorish
+ * Click pop-up notification to make it go away...
+ * that's it
+
+
+
+
 
 ---
 
