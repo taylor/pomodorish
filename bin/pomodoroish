@@ -1,0 +1,154 @@
+#!/bin/bash
+
+# Pomodoro Technique:
+#    work for 25 minutes, take 5 minute break, repeat for 4 times total, then
+#    take a 15 minute break.  start-over
+
+
+AWESOME_RUNNING=1
+if [ -x /usr/bin/awesome-client ] ; then
+  echo '--'|awesome-client > /dev/null 2>&1
+  AWESOME_RUNNING=$?
+fi
+
+if [ $AWESOME_RUNNING = 0 ] ; then
+  NOTIFIER="naughty"
+else
+  NOTIFIER="notify-send"
+fi
+  
+PLAYSOUND=1
+
+if [ -n "$(pgrep pulseaudio)" ] ; then
+  soundplayer=paplay
+else
+  soundplayer=aplay
+fi
+
+me=$(basename $0)
+mydir=$(dirname $(readlink -f $0))
+appdir=$(readlink -f "$mydir/../")
+
+bindir="${appdir}/bin"
+sounddir="${appdir}/sounds"
+imagedir="${appdir}/images"
+
+breakicon="${imagedir}/pomodoro.png"
+workicon="${imagedir}/pomodoro.png"
+worksoundpre="${sounddir}/tictac.wav"
+worksound="${sounddir}/crank.wav"
+breaksound="${sounddir}/deskbell.wav"
+
+worktime=1500
+breaktime1=300
+breaktime2=900
+timeoutms="300000" # in milliseconds
+timeout="300" # in seconds
+
+if [ "$1" = "stop" -o "$1" = "kill" ] ; then
+  echo killing
+  pkill -f "/bin/bash.*pomodoroish"
+  exit 0
+elif [ "$1" = "break" ] ; then
+  firstaction="break"
+else
+  firstaction="work"
+fi
+
+TESTMODE=0
+if [ $TESTMODE = 1 ] ; then
+  worktime=5
+  breaktime1=3
+  breaktime2=9
+  timeoutms=300000000
+  timeout=30000
+fi
+
+#worktitle="Work Time"
+worktitle="New Pomodoro starts"
+worktext="You have 25 minutes to work."
+
+breaktitle="Break Time"
+breaktext1="5 minute break"
+breaktext2="15 minute break"
+
+#urgencywork="critical"
+#urgencybreak="critical"
+urgencywork="normal"
+urgencybreak="normal"
+
+position="bottom_left"
+
+NAUGHTYID=0
+
+function sendmsg() {
+  position="$1"
+  urgency="$2"
+  title="$3"
+  text="$4"
+  icon="$5"
+
+  case $NOTIFIER in
+    naughty)
+      #echo "naughty.notify({position='$position',timeout='$timeout',preset = naughty.config.presets.${urgency},title = '$title',text = '$text',icon='$icon'})" |awesome-client
+      NAUGHTYID=$(echo "return naughty.notify({position='$position',timeout=$timeout,preset = naughty.config.presets.${urgency},title = '$title',text = '$text',icon='$icon', replaces_id=$NAUGHTYID}).id" |awesome-client)
+      NAUGHTYID=${NAUGHTYID//double}
+      ;;
+    notify-send)
+      notify-send -t $timeoutms -i "$icon" -u "$urgency" "$title" "$text"
+      ## DISPLAY=:0 notify-send  -t 5000  -i $icon -a pomodoro "$title" "$text"
+      ;;
+  esac
+}
+
+function playsound() {
+
+  case $1 in
+    work)
+      $soundplayer $worksound
+      ;;
+    workpre)
+      $soundplayer $worksoundpre
+      ;;
+    break)
+      $soundplayer $breaksound
+      ;;
+  esac
+}
+
+count=0
+action=$firstaction
+
+while [ true ] ; do
+  if [ "$action" = "work" ] ; then
+    count=$((count+1))
+    urgency=$urgencywork
+    title=$worktitle
+    text=$worktext
+    icon=$workicon
+
+    playsound workpre
+    sendmsg "$position" "$urgency" "$title" "$text" "$icon"
+    playsound work
+
+    sleep $worktime
+  fi
+
+  if [ $count = 4 ] ; then
+    count=0
+    breaktime=$breaktime2
+    text=$breaktext2
+  else
+    breaktime=$breaktime1
+    text=$breaktext1
+  fi
+
+  urgency=$urgencybreak
+  title=$breaktitle
+  icon=$breakicon
+
+  playsound break
+  sendmsg "$position" "$urgency" "$title" "$text" "$icon"
+  sleep $breaktime
+  action="work"
+done
